@@ -22,9 +22,10 @@ get_pretty_name() {
 get_bundle_id() {
     local pretty_name="$1"
 
-    # attempt to find using `mdfind`
-    local app_path=$(mdfind "kMDItemDisplayName == '$pretty_name'" | head -n 1)
+    # Try Spotlight search (mdfind)
+    local app_path=$(mdfind -onlyin /Applications -onlyin /System/Applications -onlyin "/Users/$USER/Applications" -name "$pretty_name.app" | head -n 1)
 
+    # If found, extract the Bundle ID
     if [[ -n "$app_path" ]]; then
         local bundle_id=$(defaults read "$app_path/Contents/Info.plist" CFBundleIdentifier 2>/dev/null)
         if [[ -n "$bundle_id" ]]; then
@@ -33,26 +34,24 @@ get_bundle_id() {
         fi
     fi
 
-    # If `mdfind` fails, check system locations
-    local app_paths=(
+    # Fallback: Try listing known paths manually
+    local known_paths=(
         "/Applications/$pretty_name.app"
         "/System/Applications/$pretty_name.app"
         "/Applications/Utilities/$pretty_name.app"
+        "/Users/$USER/Applications/$pretty_name.app"
     )
 
-    for app_path in "${app_paths[@]}"; do
-        if [[ -d "$app_path" ]]; then  # Check if the directory exists
-            local bundle_id=$(defaults read "$app_path/Contents/Info.plist" CFBundleIdentifier 2>/dev/null)
-            if [[ -n "$bundle_id" ]]; then
-                echo "$bundle_id"
-                return
-            fi
+    for app_path in "${known_paths[@]}"; do
+        if [[ -d "$app_path" ]]; then
+            bundle_id=$(defaults read "$app_path/Contents/Info.plist" CFBundleIdentifier 2>/dev/null)
+            [[ -n "$bundle_id" ]] && echo "$bundle_id" && return
         fi
     done
 
-    # still not found
-    echo "mystery"
+    echo "Unknown Application"
 }
+
 
 
 # Define groups of file extensions
