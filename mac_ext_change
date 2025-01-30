@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Ensure duti is installed
+if ! command -v duti &> /dev/null; then
+    echo "duti is not installed. Install it using: brew install duti"
+    exit 1
+fi
+
+# Define groups of file extensions
+PLAIN_TEXT_EXTENSIONS="txt,md,log,csv,json,xml,yaml,yml,ini"
+VIDEO_EXTENSIONS="mp4,mkv,avi,mov,flv,wmv,webm"
+AUDIO_EXTENSIONS="mp3,wav,flac,aac,ogg,m4a"
+IMAGE_EXTENSIONS="jpg,jpeg,png,gif,bmp,tiff,svg,webp"
+CODE_EXTENSIONS="html,css,js,ts,jsx,tsx,c,h,cpp,hpp,java,php,rb,pl,swift,py,sh,bash,zsh,go,rs,lua,sql,r,jl,m,mm"
+
+# Check if BUNDLE_ID and EXTENSIONS are provided as arguments
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: $0 <BUNDLE_ID> <EXTENSIONS_GROUP or comma-separated extensions>"
+    echo "Available groups: plain, video, audio, image, code"
+    exit 1
+fi
+
+BUNDLE_ID="$1"
+
+# Determine extensions based on the provided argument
+case "$2" in
+    plain) EXTENSIONS="$PLAIN_TEXT_EXTENSIONS" ;;
+    video) EXTENSIONS="$VIDEO_EXTENSIONS" ;;
+    audio) EXTENSIONS="$AUDIO_EXTENSIONS" ;;
+    image) EXTENSIONS="$IMAGE_EXTENSIONS" ;;
+    code) EXTENSIONS="$CODE_EXTENSIONS" ;;
+    *) EXTENSIONS="$2" ;;
+esac
+
+IFS=',' read -r -a EXTENSIONS <<< "$EXTENSIONS"
+
+# Set the application as the default for each extension
+for ext in "${EXTENSIONS[@]}"; do
+#    echo "     .$ext..."
+    current_app=$(duti -x .$ext 2>/dev/null | tail -n 1 | tr -d '[:space:]')
+    
+    if [[ -z "$current_app" ]]; then
+        echo "Warning: No default application found for .$ext. Trying to set it anyway."
+    elif [[ "$current_app" == "$BUNDLE_ID" ]]; then
+        echo -e " 🟢🟡 \033[1m.$ext\033[0m is already set to $BUNDLE_ID"
+        continue
+#    else
+#        echo "Current default for .$ext: $current_app"
+    fi
+    
+    duti -s "$BUNDLE_ID" ".$ext" all 2>/dev/null
+    new_app=$(duti -x .$ext 2>/dev/null | tail -n 1 | tr -d '[:space:]')
+    
+    if [[ "$new_app" == "$BUNDLE_ID" ]]; then
+        echo -e " 🟢🟢 \033[1m.$ext\033[0m set to $BUNDLE_ID!"
+    else
+        echo -e " 🔴🔴 \033[1m.$ext\033[0m cannot set $new_app! current default is $current_app!"
+    fi
+
+done
+
+# Force update Launch Services
+echo "Refreshing Launch Services..."
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -r -f /Applications/CotEditor.app
+
+echo "All file associations updated successfully!"
