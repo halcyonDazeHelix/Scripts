@@ -17,8 +17,7 @@ get_pretty_name() {
     fi
 }
 
-# get BUNDLE_ID 
-
+# Function to get BUNDLE_ID from PRETTY_NAME
 get_bundle_id() {
     local pretty_name="$1"
     
@@ -40,6 +39,7 @@ get_bundle_id() {
         "/System/Applications/$pretty_name.app"
         "/Applications/Utilities/$pretty_name.app"
         "/Users/$USER/Applications/$pretty_name.app"
+        "/Applications/Xcode.app"
     )
 
     for app_path in "${known_paths[@]}"; do
