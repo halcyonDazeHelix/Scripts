@@ -75,7 +75,7 @@ for ext in "${EXTENSIONS[@]}"; do
     current_app=$(duti -x .$ext 2>/dev/null | tail -n 1 | tr -d '[:space:]')
     
     if [[ -z "$current_app" ]]; then
-        echo " ⚠️⚠️ \033[1m.$ext\033[0m not found. fuckin doin it anyway!"
+        echo "Warning: No default application found for .$ext. Trying to set it anyway."
     elif [[ "$current_app" == "$BUNDLE_ID" ]]; then
         echo -e " 🟢🟡 \033[1m.$ext\033[0m is already set to $PRETTY_NAME ($BUNDLE_ID)"
         continue
@@ -87,7 +87,7 @@ for ext in "${EXTENSIONS[@]}"; do
     if [[ "$new_app" == "$BUNDLE_ID" ]]; then
         echo -e " 🟢🟢 \033[1m.$ext\033[0m set to $PRETTY_NAME ($BUNDLE_ID)!"
     else
-        echo -e " 🔴🔴 \033[1m.$ext\033[0m cannot set $PRETTY_NAME ($BUNDLE_ID)! default is $current_app!"
+        echo -e " 🔴🔴 \033[1m.$ext\033[0m cannot set $PRETTY_NAME ($BUNDLE_ID)! current default is $current_app!"
     fi
 done
 
