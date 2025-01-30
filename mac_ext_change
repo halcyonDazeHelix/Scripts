@@ -6,7 +6,7 @@ if ! command -v duti &> /dev/null; then
     exit 1
 fi
 
-# Function to get pretty name from BUNDLE_ID
+# Function to get pretty name from BUNDLE_ID (case-insensitive)
 get_pretty_name() {
     local bundle_id="$1"
     local app_path=$(mdfind "kMDItemCFBundleIdentifier == '$bundle_id'" | head -n 1)
@@ -17,7 +17,7 @@ get_pretty_name() {
     fi
 }
 
-# Function to get BUNDLE_ID from pretty name
+# Function to get BUNDLE_ID from pretty name (case-insensitive)
 get_bundle_id() {
     local pretty_name="$1"
     # Use mdfind with a case-insensitive query for the display name
@@ -75,7 +75,7 @@ for ext in "${EXTENSIONS[@]}"; do
     current_app=$(duti -x .$ext 2>/dev/null | tail -n 1 | tr -d '[:space:]')
     
     if [[ -z "$current_app" ]]; then
-        echo "Warning: No default application found for .$ext. Trying to set it anyway."
+        echo " ⚠️⚠️ \033[1m.$ext\033[0m not found. fuckin doin it anyway!"
     elif [[ "$current_app" == "$BUNDLE_ID" ]]; then
         echo -e " 🟢🟡 \033[1m.$ext\033[0m is already set to $PRETTY_NAME ($BUNDLE_ID)"
         continue
@@ -87,7 +87,7 @@ for ext in "${EXTENSIONS[@]}"; do
     if [[ "$new_app" == "$BUNDLE_ID" ]]; then
         echo -e " 🟢🟢 \033[1m.$ext\033[0m set to $PRETTY_NAME ($BUNDLE_ID)!"
     else
-        echo -e " 🔴🔴 \033[1m.$ext\033[0m cannot set $PRETTY_NAME ($BUNDLE_ID)! current default is $current_app!"
+        echo -e " 🔴🔴 \033[1m.$ext\033[0m cannot set $PRETTY_NAME ($BUNDLE_ID)! default is $current_app!"
     fi
 done
 
@@ -96,5 +96,3 @@ echo "Refreshing Launch Services..."
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -r -f /Applications/
 
 echo "All file associations updated successfully!"
-
-echo "Debug: app_path = $app_path"
