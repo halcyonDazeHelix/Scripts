@@ -21,8 +21,8 @@ get_pretty_name() {
 
 get_bundle_id() {
     local pretty_name="$1"
-
-    # Try Spotlight search (mdfind)
+    
+    # First, try using mdfind
     local app_path=$(mdfind -onlyin /Applications -onlyin /System/Applications -onlyin "/Users/$USER/Applications" -name "$pretty_name.app" | head -n 1)
 
     # If found, extract the Bundle ID
@@ -34,7 +34,7 @@ get_bundle_id() {
         fi
     fi
 
-    # Fallback: Try listing known paths manually
+    # Manually check common paths
     local known_paths=(
         "/Applications/$pretty_name.app"
         "/System/Applications/$pretty_name.app"
@@ -51,8 +51,6 @@ get_bundle_id() {
 
     echo "Unknown Application"
 }
-
-
 
 # Define groups of file extensions
 PLAIN_TEXT_EXTENSIONS="txt,md,log,csv,json,xml,yaml,yml,ini"
